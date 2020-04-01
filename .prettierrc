@@ -1,0 +1,7 @@
+{
+  "semi": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "jsx-a11y/anchor-is-valid": true,
+  "no-throw-literal": true
+}
