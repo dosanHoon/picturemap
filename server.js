@@ -6,6 +6,7 @@ const serve = require("koa-static");
 const cors = require("koa-cors");
 const fs = require("fs");
 const path = require("path");
+const render = require("koa-ejs");
 const PORT = process.env.PORT || 8887;
 
 const app = new Koa();
@@ -23,19 +24,41 @@ app
     ctx.set("X-Response-Time", `${ms}ms`);
   });
 
-fs.readdir(path.resolve(__dirname, "./img"), (err, file_list) => {
-  console.log(file_list);
+app.use(serve(path.resolve(__dirname, "static")));
+
+render(app, {
+  root: path.join(__dirname, "./"),
+  layout: "index",
+  viewExt: "html",
+  cache: false,
+  debug: false
 });
 
-const indexHtml = fs.readFileSync(path.resolve(__dirname, "./index.html"), {
-  encoding: "utf8"
+// const indexHtml = fs.readFileSync(path.resolve(__dirname, "./index.html"), {
+//   encoding: "utf8"
+// });
+
+app.use(function(ctx, next) {
+  ctx.state = ctx.state || {};
+  ctx.state.now = new Date();
+  ctx.state.ip = ctx.ip;
+  ctx.state.version = "2.0.0";
+  return next();
 });
 
-app.use(serve(path.resolve(__dirname, "./")));
-
-app.use((ctx, next) => {
+function getFileList() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path.resolve(__dirname, "./static/img"), (err, file_list) => {
+      console.log(file_list);
+      resolve(file_list);
+    });
+  });
+}
+app.use(async function(ctx) {
   if (ctx.path.indexOf("/api") > -1) return next();
-  ctx.body = indexHtml;
+  ctx.state.version = "2.0.0";
+  const file_list = await getFileList();
+  await ctx.render("index", { file_list });
 });
 
 app.use(BodyParser());
