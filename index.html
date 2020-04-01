@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .overlaybox {
+        width: 200px;
+        padding: 10px;
+        background-color: grey;
+        border-radius: 10%;
+      }
+      .overlaybox img {
+        width: 100%;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script
+      type="text/javascript"
+      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=979ea388136df5816059da9117c97702"
+    ></script>
+  </head>
+  <body>
+    <div id="map" style="width:1000px;height:700px;"></div>
+
+    <img src="IMG_2343.jpg" id="img1" />
+    <pre>Make and model: <span id="makeAndModel"></span></pre>
+    <br />
+    <img src="IMG_2853.jpg" id="img2" />
+    <pre id="allMetaDataSpan"></pre>
+    <br />
+
+    <script>
+      window.onload = getExif;
+
+      function getExif() {
+        var img1 = document.getElementById("img1");
+        var img2 = document.getElementById("img2");
+        EXIF.getData(img1, function() {
+          var GPSLatitude = EXIF.getTag(this, "GPSLatitude");
+          var GPSLongitude = EXIF.getTag(this, "GPSLongitude");
+          const gps1 =
+            GPSLatitude[0] + GPSLatitude[1] / 60 + GPSLatitude[2] / 3600;
+          const gps2 =
+            GPSLongitude[0] + GPSLongitude[1] / 60 + GPSLongitude[2] / 3600;
+
+          EXIF.getData(img2, function() {
+            var GPSLatitude2 = EXIF.getTag(this, "GPSLatitude");
+            var GPSLongitude2 = EXIF.getTag(this, "GPSLongitude");
+            const gps3 =
+              GPSLatitude2[0] + GPSLatitude2[1] / 60 + GPSLatitude2[2] / 3600;
+            const gps4 =
+              GPSLongitude2[0] +
+              GPSLongitude2[1] / 60 +
+              GPSLongitude2[2] / 3600;
+
+            var mapContainer = document.getElementById("map"), // 지도를 표시할 div
+              mapOption = {
+                center: new kakao.maps.LatLng(gps1, gps2), // 지도의 중심좌표
+                level: 3 // 지도의 확대 레벨
+              };
+
+            var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+            // 마커를 표시할 위치와 title 객체 배열입니다
+            var positions = [
+              {
+                title: "카카오",
+                latlng: new kakao.maps.LatLng(gps1, gps2),
+                img: "IMG_2343"
+              },
+              {
+                title: "생태연못",
+                latlng: new kakao.maps.LatLng(gps3, gps4),
+                img: "IMG_2853"
+              }
+            ];
+
+            for (var i = 0; i < positions.length; i++) {
+              var content =
+                '<div class="overlaybox">' +
+                '    <div class="first">' +
+                `<img src="${positions[i].img}.jpg"  />` +
+                "    </div>" +
+                "</div>";
+
+              var customOverlay = new kakao.maps.CustomOverlay({
+                position: positions[i].latlng, // 마커를 표시할 위치
+                content: content,
+                map: map, // 마커를 표시할 지도
+                xAnchor: 0.3,
+                yAnchor: 0.91
+              });
+              // customOverlay.setMap(map);
+            }
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
