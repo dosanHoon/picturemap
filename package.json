@@ -21,6 +21,7 @@
     "nodemon": "^2.0.2"
   },
   "dependencies": {
+    "exif": "^0.6.0",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.3.0",
     "koa-cors": "0.0.16",

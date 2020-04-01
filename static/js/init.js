@@ -8,37 +8,23 @@ async function getExif() {
 
   var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
 
-  imgList.forEach(imgName => {
-    var newImg = document.createElement("img");
-    newImg.src = `./img/${imgName}`;
-    newImg.onload = async function() {
-      console.log("onload", this);
-      const [GPSLatitude, GPSLongitude] = await asyncGetExif(this);
+  imgList.forEach(img => {
+    const [N, S, fileName] = img.split(",");
 
-      if (GPSLatitude) {
-        const [gpsn1, gpss1] = makeGps(GPSLatitude, GPSLongitude);
+    if (N) {
+      var content = `
+            <div class="overlaybox">
+                <img src="./img/${fileName}" />
+            </div>
+        `;
 
-        var content =
-          '<div class="overlaybox">' +
-          '    <div class="first">' +
-          `<img src="./img/${imgName}"  />` +
-          "    </div>" +
-          "</div>";
-
-        var customOverlay = new kakao.maps.CustomOverlay({
-          position: new kakao.maps.LatLng(gpsn1, gpss1), // 마커를 표시할 위치
-          content: content,
-          map: map, // 마커를 표시할 지도
-          xAnchor: 0.3,
-          yAnchor: 0.91
-        });
-      }
-
-      if (this.parentNode) {
-        this.parentNode.removeChild(this);
-      }
-    };
-
-    document.body.appendChild(newImg);
+      new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(N, S), // 마커를 표시할 위치
+        content: content,
+        map: map, // 마커를 표시할 지도
+        xAnchor: 0.3,
+        yAnchor: 0.91
+      });
+    }
   });
 }

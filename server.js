@@ -8,8 +8,15 @@ const fs = require("fs");
 const path = require("path");
 const render = require("koa-ejs");
 const PORT = process.env.PORT || 8887;
+var ExifImage = require("exif").ExifImage;
 
 const app = new Koa();
+
+function makeGps(GPSLatitude, GPSLongitude) {
+  const gpsN = GPSLatitude[0] + GPSLatitude[1] / 60 + GPSLatitude[2] / 3600;
+  const gpsS = GPSLongitude[0] + GPSLongitude[1] / 60 + GPSLongitude[2] / 3600;
+  return [gpsN, gpsS];
+}
 
 app
   .use(async (ctx, next) => {
@@ -34,31 +41,54 @@ render(app, {
   debug: false
 });
 
-// const indexHtml = fs.readFileSync(path.resolve(__dirname, "./index.html"), {
-//   encoding: "utf8"
-// });
-
 app.use(function(ctx, next) {
   ctx.state = ctx.state || {};
   ctx.state.now = new Date();
-  ctx.state.ip = ctx.ip;
-  ctx.state.version = "2.0.0";
   return next();
 });
 
-function getFileList() {
+function asyncGetExifData(imgPath) {
   return new Promise((resolve, reject) => {
-    fs.readdir(path.resolve(__dirname, "./static/img"), (err, file_list) => {
-      console.log(file_list);
-      resolve(file_list);
+    new ExifImage({ image: imgPath }, function(error, exifData) {
+      if (error) console.log("Error: " + error.message);
+      else {
+        resolve(exifData);
+      }
     });
   });
 }
+
+async function getImgList() {
+  const imgFolder = path.resolve(__dirname, "./static/img");
+  const files = fs.readdirSync(imgFolder);
+  const imgList = [];
+
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var suffix = file.split(".").pop();
+    if (suffix.toLowerCase() === "jpg" || suffix.toLowerCase() === "png") {
+      const imgPath = path.resolve(__dirname, "./static/img/" + file);
+      try {
+        const exifData = await asyncGetExifData(imgPath);
+        if (exifData && exifData.gps) {
+          const [N, S] = makeGps(exifData.gps.GPSLatitude, exifData.gps.GPSLongitude);
+          imgList.push([N, S, file]);
+        }
+      } catch (error) {
+        console.log("Error: " + error.message);
+      }
+    }
+  }
+
+  return imgList;
+}
+
 app.use(async function(ctx) {
   if (ctx.path.indexOf("/api") > -1) return next();
   ctx.state.version = "2.0.0";
-  const file_list = await getFileList();
-  await ctx.render("index", { file_list });
+
+  const imgList = await getImgList();
+  await ctx.render("index", { imgList });
 });
 
 app.use(BodyParser());

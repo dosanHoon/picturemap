@@ -6,10 +6,10 @@
     <title>Document</title>
     <style>
       .overlaybox {
-        width: 200px;
-        padding: 10px;
-        background-color: grey;
-        border-radius: 10%;
+        width: 100px;
+        padding: 5px;
+        background-color: white;
+        border-radius: 5px;
       }
       .overlaybox img {
         width: 100%;
@@ -25,9 +25,9 @@
   <body>
     <div id="map" style="width:1000px;height:700px;"></div>
     <script>
-        const imgList = [<% file_list.forEach(function (file) {%>
+        const imgList = [<% imgList.forEach(function (file) {%>
       "<%= file %>",
-        <% })%>]
+        <% })%>];
     </script>
     <script src="./js/init.js"></script>
   </body>
