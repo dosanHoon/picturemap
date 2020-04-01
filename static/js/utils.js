@@ -6,10 +6,12 @@ function makeGps(GPSLatitude, GPSLongitude) {
 
 function asyncGetExif(img) {
   return new Promise((resolve, reject) => {
-    EXIF.getData(img, function() {
-      const GPSLatitude = EXIF.getTag(this, "GPSLatitude");
-      const GPSLongitude = EXIF.getTag(this, "GPSLongitude");
-      resolve([GPSLatitude, GPSLongitude]);
-    });
+    if (img) {
+      EXIF.getData(img, function() {
+        const GPSLatitude = EXIF.getTag(this, "GPSLatitude");
+        const GPSLongitude = EXIF.getTag(this, "GPSLongitude");
+        resolve([GPSLatitude, GPSLongitude]);
+      });
+    }
   });
 }

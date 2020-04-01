@@ -24,64 +24,11 @@
   </head>
   <body>
     <div id="map" style="width:1000px;height:700px;"></div>
-
-    <img src="./img/IMG_2343.JPG" id="img1" />
-    <pre>Make and model: <span id="makeAndModel"></span></pre>
-    <br />
-    <img src="./img/IMG_2853.jpg" id="img2" />
-    <pre id="allMetaDataSpan"></pre>
-    <br />
-
     <script>
-      window.onload = getExif;
-
-      async function getExif() {
-        var img1 = document.getElementById("img1");
-        var img2 = document.getElementById("img2");
-        const [GPSLatitude, GPSLongitude] = await asyncGetExif(img1);
-        const [GPSLatitude2, GPSLongitude2] = await asyncGetExif(img2);
-        const [gpsn1, gpss1] = makeGps(GPSLatitude, GPSLongitude);
-        const [gpsn2, gpss2] = makeGps(GPSLatitude2, GPSLongitude2);
-
-        var mapContainer = document.getElementById("map"), // 지도를 표시할 div
-          mapOption = {
-            center: new kakao.maps.LatLng(gpsn1, gpss1), // 지도의 중심좌표
-            level: 3 // 지도의 확대 레벨
-          };
-
-        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
-
-        // 마커를 표시할 위치와 title 객체 배열입니다
-        var positions = [
-          {
-            title: "카카오",
-            latlng: new kakao.maps.LatLng(gpsn1, gpss1),
-            img: "IMG_2343"
-          },
-          {
-            title: "생태연못",
-            latlng: new kakao.maps.LatLng(gpsn2, gpss2),
-            img: "IMG_2853"
-          }
-        ];
-
-        for (var i = 0; i < positions.length; i++) {
-          var content =
-            '<div class="overlaybox">' +
-            '    <div class="first">' +
-            `<img src="${positions[i].img}.jpg"  />` +
-            "    </div>" +
-            "</div>";
-
-          var customOverlay = new kakao.maps.CustomOverlay({
-            position: positions[i].latlng, // 마커를 표시할 위치
-            content: content,
-            map: map, // 마커를 표시할 지도
-            xAnchor: 0.3,
-            yAnchor: 0.91
-          });
-        }
-      }
+        const imgList = [<% file_list.forEach(function (file) {%>
+      "<%= file %>",
+        <% })%>]
     </script>
+    <script src="./js/init.js"></script>
   </body>
 </html>
