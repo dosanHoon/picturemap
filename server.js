@@ -47,47 +47,43 @@ app.use(function(ctx, next) {
   return next();
 });
 
-function asyncGetExifData(imgPath) {
+function asyncGetExifData(imgPath, file) {
   return new Promise((resolve, reject) => {
     new ExifImage({ image: imgPath }, function(error, exifData) {
       if (error) console.log("Error: " + error.message);
       else {
-        resolve(exifData);
+        if (exifData && exifData.gps.GPSLatitude) {
+          // console.log("exifData.gps");
+          const [N, S] = makeGps(exifData.gps.GPSLatitude, exifData.gps.GPSLongitude);
+          console.log("resolve");
+          resolve([N, S, file]);
+        } else {
+          resolve();
+        }
       }
     });
   });
 }
 
-async function getImgList() {
+function getImgList() {
   const imgFolder = path.resolve(__dirname, "./static/img");
   const files = fs.readdirSync(imgFolder);
-  const imgList = [];
 
-  for (var i = 0; i < files.length; i++) {
-    var file = files[i];
-    var suffix = file.split(".").pop();
+  return files.map(file => {
+    const suffix = file.split(".").pop();
     if (suffix.toLowerCase() === "jpg" || suffix.toLowerCase() === "png") {
       const imgPath = path.resolve(__dirname, "./static/img/" + file);
-      try {
-        const exifData = await asyncGetExifData(imgPath);
-        if (exifData && exifData.gps) {
-          const [N, S] = makeGps(exifData.gps.GPSLatitude, exifData.gps.GPSLongitude);
-          imgList.push([N, S, file]);
-        }
-      } catch (error) {
-        console.log("Error: " + error.message);
-      }
+      return asyncGetExifData(imgPath, file);
     }
-  }
-
-  return imgList;
+  });
 }
 
 app.use(async function(ctx) {
   if (ctx.path.indexOf("/api") > -1) return next();
   ctx.state.version = "2.0.0";
 
-  const imgList = await getImgList();
+  const imgList = await Promise.all(getImgList());
+  console.log("imgList  ========= ", imgList);
   await ctx.render("index", { imgList });
 });
 
